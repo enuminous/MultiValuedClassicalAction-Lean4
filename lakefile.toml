@@ -1,0 +1,6 @@
+name = "MultiValuedClassicalAction"
+version = "0.1.0"
+defaultTargets = ["MultiValuedClassicalAction"]
+
+[[lean_lib]]
+name = "MultiValuedClassicalAction"

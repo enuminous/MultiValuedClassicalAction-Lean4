@@ -18,3 +18,14 @@ Native proof evaluation is also rejected.
 The successful job summary records the exact commit and workflow run. Source
 declarations and hypotheses determine the mathematical scope; a successful
 build does not validate a broader empirical or scientific interpretation.
+
+## Type corrections exposed by compilation
+
+The original `Prop`-valued records attempted to store propositions as data,
+which Lean rejects. The research obligations are now explicit proposition
+parameters, and their evidence remains in `Prop`. The larger program separates
+its proposition-data record from its proof record. The two existing projection
+results now quantify those obligations explicitly; none is discharged or
+claimed as a physical derivation. Unsupported `DecidableEq` derivation for
+Float-containing records was removed; Float Boolean comparison is not silently
+substituted for propositional equality.

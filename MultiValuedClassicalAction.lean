@@ -26,7 +26,7 @@ structure Branch where
   id : Nat
   action : Scalar
   amplitude : Scalar
-  deriving Repr, DecidableEq
+  deriving Repr
 
 /-- A constrained system is represented by a finite family of admissible branches. -/
 structure ConstrainedSystem where
@@ -40,7 +40,7 @@ structure ConstrainedSystem where
 structure ComplexAmp where
   re : Scalar
   im : Scalar
-  deriving Repr, DecidableEq
+  deriving Repr
 
 namespace ComplexAmp
 
@@ -84,41 +84,39 @@ def WeightNormalized (compression : CompressionMap) (sys : ConstrainedSystem) : 
   (sys.branches.map (fun b => let c := compression b; c*c)).foldl (· + ·) 0.0 == 1.0
 
 /-- Research obligation: geometric constraints actually generate the asserted branch set. -/
-structure GeometricBranchDerivation (sys : ConstrainedSystem) : Prop where
-  branches_from_constraints : Prop
+structure GeometricBranchDerivation (sys : ConstrainedSystem)
+    (branches_from_constraints : Prop) : Prop where
   proof_branches_from_constraints : branches_from_constraints
 
 /-- Research obligation: compression/amplitude factors are derived from geometry/density,
     not fitted to the desired quantum answer. -/
 structure CompressionDerivation (compression : CompressionMap)
-    (sys : ConstrainedSystem) : Prop where
-  geometry_determines_weights : Prop
+    (sys : ConstrainedSystem) (geometry_determines_weights : Prop) : Prop where
   proof_geometry_determines_weights : geometry_determines_weights
 
 /-- Research obligation: the phase map really implements the proposed action-phase relation. -/
-structure PhaseAdequacy (phase : PhaseMap) (sys : ConstrainedSystem) : Prop where
-  action_determines_phase : Prop
+structure PhaseAdequacy (phase : PhaseMap) (sys : ConstrainedSystem)
+    (action_determines_phase : Prop) : Prop where
   proof_action_determines_phase : action_determines_phase
 
 /-- A bounded reconstruction claim.  This intentionally does NOT say that quantum
     mechanics is false, probabilistic mechanics is eliminated, or nature is ontologically
     classical. -/
 structure ReconstructionCertificate (phase : PhaseMap) (compression : CompressionMap)
-    (sys : ConstrainedSystem) : Prop where
-  geometry : GeometricBranchDerivation sys
-  compressionDerived : CompressionDerivation compression sys
-  phaseAdequate : PhaseAdequacy phase sys
+    (sys : ConstrainedSystem) (geometryClaim compressionClaim phaseClaim : Prop) : Prop where
+  geometry : GeometricBranchDerivation sys geometryClaim
+  compressionDerived : CompressionDerivation compression sys compressionClaim
+  phaseAdequate : PhaseAdequacy phase sys phaseClaim
   normalized : WeightNormalized compression sys
 
 /-- The anti-circularity condition central to the research program:
     the target quantum distribution must not simply be supplied as an input to the
     compression/phase construction. -/
-structure AntiCircularity : Prop where
-  target_not_assumed : Prop
+structure AntiCircularity (target_not_assumed : Prop) : Prop where
   proof_target_not_assumed : target_not_assumed
 
 /-- Harder benchmark obligations identified for a full quantum reconstruction. -/
-structure QuantumReconstructionProgram : Prop where
+structure QuantumReconstructionObligations where
   interference : Prop
   tunneling : Prop
   boundStates : Prop
@@ -131,31 +129,35 @@ structure QuantumReconstructionProgram : Prop where
   measurement : Prop
   relativisticExtension : Prop
 
-  interference_ok : interference
-  tunneling_ok : tunneling
-  boundStates_ok : boundStates
-  scattering_ok : scattering
-  spin_ok : spin
-  entanglement_ok : entanglement
-  bellCorrelations_ok : bellCorrelations
-  contextuality_ok : contextuality
-  bornRule_ok : bornRule
-  measurement_ok : measurement
-  relativisticExtension_ok : relativisticExtension
+structure QuantumReconstructionProgram (q : QuantumReconstructionObligations) : Prop where
+  interference_ok : q.interference
+  tunneling_ok : q.tunneling
+  boundStates_ok : q.boundStates
+  scattering_ok : q.scattering
+  spin_ok : q.spin
+  entanglement_ok : q.entanglement
+  bellCorrelations_ok : q.bellCorrelations
+  contextuality_ok : q.contextuality
+  bornRule_ok : q.bornRule
+  measurement_ok : q.measurement
+  relativisticExtension_ok : q.relativisticExtension
 
 /-- Logical sanity check: a reconstruction certificate only certifies the assumptions
     explicitly contained in it. -/
 theorem certificate_has_normalization
     (phase : PhaseMap) (compression : CompressionMap) (sys : ConstrainedSystem)
-    (h : ReconstructionCertificate phase compression sys) :
+    {geometryClaim compressionClaim phaseClaim : Prop}
+    (h : ReconstructionCertificate phase compression sys geometryClaim compressionClaim phaseClaim) :
     WeightNormalized compression sys := h.normalized
 
 /-- Anti-circularity remains a separate obligation; it cannot be obtained merely from
     a reconstruction certificate. This theorem makes the intended dependency explicit. -/
 theorem reconstruction_with_anticircularity
     (phase : PhaseMap) (compression : CompressionMap) (sys : ConstrainedSystem)
-    (hR : ReconstructionCertificate phase compression sys)
-    (hA : AntiCircularity) :
-    ReconstructionCertificate phase compression sys ∧ AntiCircularity := ⟨hR, hA⟩
+    {geometryClaim compressionClaim phaseClaim antiCircularityClaim : Prop}
+    (hR : ReconstructionCertificate phase compression sys geometryClaim compressionClaim phaseClaim)
+    (hA : AntiCircularity antiCircularityClaim) :
+    ReconstructionCertificate phase compression sys geometryClaim compressionClaim phaseClaim ∧
+      AntiCircularity antiCircularityClaim := ⟨hR, hA⟩
 
 end MVCA
